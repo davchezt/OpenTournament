@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+remote_name="${1:-}"
+remote_url="${2:-}"
+
+if ! git lfs version >/dev/null 2>&1; then
+    cat >&2 <<'EOF'
+
+OpenTournament push stopped because Git LFS is not installed.
+
+Install Git LFS:
+  https://git-lfs.com/
+
+Then run the contributor setup script from the repository root:
+
+  Windows:             .\SetupContributor.ps1
+  Linux/macOS/Git Bash: ./SetupContributor.sh
+
+EOF
+    exit 1
+fi
+
+git lfs pre-push "$remote_name" "$remote_url"
+status=$?
+
+if [[ $status -ne 0 ]]; then
+    cat >&2 <<'EOF'
+
+OpenTournament Git LFS push failed.
+
+OpenTournament uses:
+  - GitHub for Git repositories, forks, and pull requests
+  - OpenTournament GitLab for Git LFS object storage
+
+Public users can clone the repository and download LFS files anonymously.
+Pushing new or modified LFS files requires GitLab contributor access.
+
+To contribute LFS files:
+
+  1. Complete the OpenTournament contributor form:
+     https://forms.gle/s7qcsKLuVVm1WzgB7
+
+  2. Create and verify a GitLab account:
+     https://git.opentournamentgame.com
+
+  3. Wait for maintainer approval and project access.
+
+  4. Create a GitLab personal access token with:
+       Scope: write_repository
+
+  5. When Git requests credentials for git.opentournamentgame.com:
+       Username: your GitLab username
+       Password: your GitLab personal access token
+
+Never place a token in .lfsconfig, a remote URL, or a committed file.
+
+Useful checks:
+  git lfs status
+  git lfs env
+  git config --local --get core.hooksPath
+
+Detailed instructions:
+  docs/GIT_LFS.md
+
+If your change is code-only, check whether you accidentally changed a file
+type managed by Git LFS.
+
+EOF
+fi
+
+exit "$status"
